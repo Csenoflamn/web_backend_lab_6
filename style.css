@@ -1,0 +1,194 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background-color: #ffffff;
+    max-width: 700px;
+    width: 100%;
+    padding: 30px 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #2c3e50;
+    font-weight: 300;
+    font-size: 2.2em;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #34495e;
+    font-size: 0.95em;
+}
+
+label .required {
+    color: #e74c3c;
+    margin-left: 3px;
+}
+
+input[type="text"], input[type="tel"], input[type="email"], input[type="date"], textarea, select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #fafafa;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    background-color: #fff;
+}
+
+.radio-group {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    background: #fafafa;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.radio-group label {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+	margin-right: 6px;
+    transform: scale(1.1);
+}
+
+select[multiple] {
+    height: 150px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.checkbox-group input {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(52,152,219,0.3);
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(52,152,219,0.3);
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.global-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #f5c6cb;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #c3e6cb;
+}
+
+.field-error {
+    border-color: #e74c3c !important;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 3px;
+}
+
+.auth-section {
+    background: #f4f6f9;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.auth-section h3 { 
+    margin-top: 0; 
+}
+
+.credentials-box {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.auth-error {
+    color: #e74c3c;
+    margin-bottom: 10px;
+}

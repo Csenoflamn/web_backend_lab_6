@@ -4,6 +4,39 @@ session_start();
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/application.php';
 
+$pdo = getDB();
+$stmt = $pdo->query("SELECT COUNT(*) FROM admins");
+$admins_count = $stmt->fetchColumn();
+
+$need_setup = ($admins_count == 0);
+
+// Обработка установки первого администратора
+if ($need_setup && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_admin'])) {
+    $login = trim($_POST['login'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+    $error = null;
+    
+    if ($login === '' || $password === '') {
+        $error = 'Заполните все поля';
+    } elseif ($password !== $confirm_password) {
+        $error = 'Пароли не совпадают';
+    } elseif (strlen($password) < 6) {
+        $error = 'Пароль должен содержать минимум 6 символов';
+    } else {
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        try {
+            $stmt = $pdo->prepare("INSERT INTO admins (login, password_hash) VALUES (:login, :hash)");
+            $stmt->execute([':login' => $login, ':hash' => $password_hash]);
+            $_SESSION['admin_logged_in'] = true;
+            header('Location: index.php');
+            exit;
+        } catch (PDOException $e) {
+            $error = 'Ошибка создания администратора: ' . $e->getMessage();
+        }
+    }
+}
+
 $admin_logged_in = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'admin_login') {
@@ -63,6 +96,31 @@ if ($admin_logged_in) {
 </head>
 <body>
 <div class="container" style="max-width: 1200px;">
+    <?php if ($need_setup): ?>
+    <div class="container" style="max-width: 500px;">
+        <h1>Установка администратора</h1>
+        <p>Создайте первого администратора</p>
+        <?php if (isset($error)): ?>
+            <div class="global-error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        <form method="post">
+            <div class="form-group">
+                <label>Логин</label>
+                <input type="text" name="login" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль (мин. 6 символов)</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label>Подтверждение пароля</label>
+                <input type="password" name="confirm_password" required>
+            </div>
+            <button type="submit" name="setup_admin">Создать администратора</button>
+        </form>
+    </div>
+    <?php exit; ?>
+<?php endif; ?>
     <?php if (!$admin_logged_in): ?>
         <h1>Вход в панель администратора</h1>
         <?php if (isset($_SESSION['admin_login_error'])): ?>

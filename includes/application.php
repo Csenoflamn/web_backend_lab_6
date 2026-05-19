@@ -1,6 +1,18 @@
 <?php
 require_once __DIR__ . '/database.php';
 
+if (!function_exists('mb_strlen')) {
+    function mb_strlen($str, $encoding = 'UTF-8') {
+        return strlen($str);
+    }
+}
+
+if (!function_exists('mb_substr')) {
+    function mb_substr($str, $start, $length = null, $encoding = 'UTF-8') {
+        return substr($str, $start, $length);
+    }
+}
+
 function getAllApplications(): array {
     $pdo = getDB();
     $stmt = $pdo->query("SELECT * FROM application ORDER BY id DESC");

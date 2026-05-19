@@ -4,14 +4,24 @@ session_start();
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/application.php';
 
+if (!function_exists('mb_strlen')) {
+    function mb_strlen($str, $encoding = 'UTF-8') {
+        return strlen($str);
+    }
+}
+
+if (!function_exists('mb_substr')) {
+    function mb_substr($str, $start, $length = null, $encoding = 'UTF-8') {
+        return substr($str, $start, $length);
+    }
+}
+
 $pdo = getDB();
 
-// Проверяем, есть ли администраторы в БД
 $stmt = $pdo->query("SELECT COUNT(*) FROM admins");
 $admins_count = $stmt->fetchColumn();
 $need_setup = ($admins_count == 0);
 
-// Обработка установки первого администратора
 $setup_error = null;
 if ($need_setup && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_admin'])) {
     $login = trim($_POST['login'] ?? '');
@@ -38,13 +48,11 @@ if ($need_setup && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_
     }
 }
 
-// Проверка авторизации администратора (только если админы уже есть)
 $admin_logged_in = false;
 if (!$need_setup) {
     $admin_logged_in = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 }
 
-// Обработка логина админа
 $login_error = null;
 if (!$need_setup && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'admin_login') {
     $login = trim($_POST['login'] ?? '');
@@ -66,14 +74,27 @@ if (!$need_setup && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['actio
     }
 }
 
-// Выход админа
 if (isset($_GET['logout'])) {
     unset($_SESSION['admin_logged_in']);
     header('Location: index.php');
     exit;
 }
 
-// Получение данных для отображения (только если админ авторизован)
+function safe_substr($str, $max_length = 100) {
+    if (strlen($str) <= $max_length) {
+        return htmlspecialchars($str);
+    }
+
+    $substr = substr($str, 0, $max_length);
+    $last_space = strrpos($substr, ' ');
+    
+    if ($last_space !== false && $last_space > $max_length - 20) {
+        $substr = substr($substr, 0, $last_space);
+    }
+    
+    return htmlspecialchars($substr) . '…';
+}
+
 $applications = [];
 $statistics = [];
 $languagesList = [];
@@ -211,6 +232,12 @@ if ($admin_logged_in) {
             border-radius: 3px;
             font-size: 12px;
         }
+        .bio-cell {
+            max-width: 250px;
+            word-wrap: break-word;
+            font-size: 13px;
+            line-height: 1.4;
+        }
         @media (max-width: 768px) {
             .admin-table {
                 font-size: 12px;
@@ -222,6 +249,9 @@ if ($admin_logged_in) {
                 font-size: 11px;
                 padding: 3px 6px;
             }
+            .bio-cell {
+                max-width: 150px;
+            }
         }
     </style>
 </head>
@@ -229,9 +259,8 @@ if ($admin_logged_in) {
 <div class="container" style="max-width: 1200px;">
     
     <?php if ($need_setup): ?>
-        <!-- Установка первого администратора -->
         <div class="setup-box">
-            <h1>🔐 Установка администратора</h1>
+            <h1>Установка администратора</h1>
             <p>Создайте первого администратора для доступа к панели управления.</p>
             
             <?php if ($setup_error): ?>
@@ -261,9 +290,8 @@ if ($admin_logged_in) {
         </div>
         
     <?php elseif (!$admin_logged_in): ?>
-        <!-- Форма входа администратора -->
         <div class="login-box">
-            <h1>🔑 Вход в панель администратора</h1>
+            <h1>Вход в панель администратора</h1>
             
             <?php if ($login_error): ?>
                 <div class="global-error" style="margin-bottom: 20px;"><?= htmlspecialchars($login_error) ?></div>
@@ -287,15 +315,13 @@ if ($admin_logged_in) {
         </div>
         
     <?php else: ?>
-        <!-- Панель администратора (авторизован) -->
         <div class="admin-header">
-            <h1>👨‍💼 Панель администратора</h1>
-            <a href="?logout=1" class="btn btn-danger" style="background:#95a5a6;">🚪 Выйти</a>
+            <h1>Панель администратора</h1>
+            <a href="?logout=1" class="btn btn-danger" style="background:#95a5a6;">Выйти</a>
         </div>
 
-        <!-- Статистика по языкам -->
         <div class="stats-box">
-            <h3>📊 Статистика: количество пользователей, любящих каждый язык</h3>
+            <h3>Статистика: количество пользователей, любящих каждый язык</h3>
             <?php if (empty($statistics)): ?>
                 <p style="color: #7f8c8d; margin: 0;">Нет данных о языках.</p>
             <?php else: ?>
@@ -310,14 +336,13 @@ if ($admin_logged_in) {
             <?php endif; ?>
         </div>
 
-        <!-- Список всех заявок -->
-        <h3>📋 Все заявки пользователей</h3>
+        <h3>Все заявки пользователей</h3>
         
         <?php if (empty($applications)): ?>
             <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px;">
                 <p style="margin: 0; color: #7f8c8d;">Пока нет ни одной заявки.</p>
                 <p style="margin-top: 10px;">
-                    <a href="../index.php" class="btn" style="background:#3498db;">➕ Создать первую заявку</a>
+                    <a href="../index.php" class="btn" style="background:#3498db;">Создать первую заявку</a>
                 </p>
             </div>
         <?php else: ?>
@@ -345,8 +370,8 @@ if ($admin_logged_in) {
                                     $langNames[] = htmlspecialchars($lang['name']);
                                 }
                             }
-                            $bioShort = mb_strlen($app['biography']) > 100 ? mb_substr($app['biography'], 0, 100) . '…' : $app['biography'];
-                            $bioShort = nl2br(htmlspecialchars($bioShort));
+                            $bioDisplay = safe_substr($app['biography'], 100);
+                            $bioDisplay = nl2br($bioDisplay);
                         ?>
                             <tr>
                                 <td style="text-align: center; font-weight: bold;"><?= $app['id'] ?></td>
@@ -355,11 +380,11 @@ if ($admin_logged_in) {
                                 <td><?= htmlspecialchars($app['phone']) ?></td>
                                 <td><?= htmlspecialchars($app['birth_date']) ?></td>
                                 <td><?= $app['gender'] === 'male' ? 'Мужской' : 'Женский' ?></td>
-                                <td style="max-width: 250px;"><?= $bioShort ?></td>
+                                <td class="bio-cell"><?= $bioDisplay ?></td>
                                 <td><?= !empty($langNames) ? implode(', ', $langNames) : '<em style="color:#999;">нет</em>' ?></td>
                                 <td class="action-buttons">
-                                    <a href="edit.php?id=<?= $app['id'] ?>" class="btn btn-warning">✏️ Ред.</a>
-                                    <a href="delete.php?id=<?= $app['id'] ?>" class="btn btn-danger" onclick="return confirm('Удалить заявку пользователя «<?= htmlspecialchars($app['full_name']) ?>»?\nЭто действие нельзя отменить!')">🗑️ Удал.</a>
+                                    <a href="edit.php?id=<?= $app['id'] ?>" class="btn btn-warning">Ред.</a>
+                                    <a href="delete.php?id=<?= $app['id'] ?>" class="btn btn-danger" onclick="return confirm('Удалить заявку пользователя «<?= htmlspecialchars($app['full_name']) ?>»?\nЭто действие нельзя отменить!')">Удал.</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
